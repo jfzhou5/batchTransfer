@@ -3,6 +3,9 @@ message Mint {
     amount: Int;
     receiver: Address;
 }
+message Mintable {
+    mintable: Bool;
+}
 
 contract SampleJetton with Jetton {
     totalSupply: Int as coins;
@@ -25,9 +28,9 @@ contract SampleJetton with Jetton {
         self.mint(msg.receiver, msg.amount, self.owner); //(to, amount, response_destination)
     }
 
-    receive("Owner: MintClose"){
+    receive(msg: Mintable){
         let ctx: Context = context();
         require(ctx.sender == self.owner, "Not Owner");
-        self.mintable = false;
+        self.mintable = msg.mintable;
     }
 }

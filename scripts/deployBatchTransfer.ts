@@ -17,6 +17,5 @@ export async function run(provider: NetworkProvider) {
     );
 
     await provider.waitForDeploy(batchTransfer.address);
-
-    // run methods on `batchTransfer`
+    console.log("batchTransfer deployed at", batchTransfer.address.toString())
 }
