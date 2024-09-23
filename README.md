@@ -1,26 +1,37 @@
 # batchTransfer
 
-## Project structure
+## Start
 
--   `contracts` - source code of all the smart contracts of the project and their dependencies.
--   `wrappers` - wrapper classes (implementing `Contract` from ton-core) for the contracts, including any [de]serialization primitives and compilation functions.
--   `tests` - tests for the contracts.
--   `scripts` - scripts used by the project, mainly the deployment scripts.
+Tact compiler requires node version >= v22.0.0
 
-## How to use
+```shell
+# install dependencies
+yarn
 
-### Build
+# compile contracts
+yarn build:all
 
-`npx blueprint build` or `yarn blueprint build`
+# run unit test
+yarn test
 
-### Test
+```
 
-`npx blueprint test` or `yarn blueprint test`
+## scripts
 
-### Deploy or run another script
+Firstly `cp .env.sample .env` and add `WALLET_MNEMONIC` into `.env`
 
-`npx blueprint run` or `yarn blueprint run`
+Testnet contracts: `helpers/constant.ts`
 
-### Add a new contract
+```shell
+# mint some Test Jetton
+yarn run:testnet mintJetton
 
-`npx blueprint create ContractName` or `yarn blueprint create ContractName`
+# run batchTransferJetton
+yarn run:testnet batchTransferJetton
+
+# get batchTransfer result
+yarn run:testnet getBatchTransferResult
+
+# Owner: withdraw jetton
+yarn run:testnet withdrawJetton
+```
