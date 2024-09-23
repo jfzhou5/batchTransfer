@@ -126,7 +126,7 @@ describe('BatchTransfer', () => {
 
     it('Jetton Batch Transfer', async () => {
         const forward_payload: Slice = beginCell()
-            .storeUint(0xc351d681, 32)
+            .storeUint(0xe5d5a095, 32)
             .storeAddress(batchTransferSampleJettonWallet.address)
             .storeRef(
                 beginCell()
@@ -197,7 +197,7 @@ describe('BatchTransfer', () => {
         expect((await batchTransferSampleJettonWallet.getGetWalletData()).balance).toEqual(toNano(10));
         expect((await user1SampleJettonWallet.getGetWalletData()).balance).toEqual(toNano(45));
         expect((await user2SampleJettonWallet.getGetWalletData()).balance).toEqual(toNano(45));
-        // console.log(fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
+        console.log(fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
 
         await batchTransfer.send(
             deployer.getSender(),
@@ -211,49 +211,82 @@ describe('BatchTransfer', () => {
                 amount: toNano(10),
             },
         );
-        // console.log(fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
+        console.log(fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
 
         expect((await batchTransferSampleJettonWallet.getGetWalletData()).balance).toEqual(toNano(0));
         expect((await user1SampleJettonWallet.getGetWalletData()).balance).toEqual(toNano(55));
     });
 
-    it('Jetton Batch Transfer Many times', async () => {
+    it('Jetton Batch Transfer max size', async () => {
         for (let index = 0; index < 20; index++) {
+            // support max user count:
+            const users = new Array(8).fill(0).map((_) => randomAddress());
+            const usersSampleJettonWallets = await Promise.all(
+                users.map(async (user) => {
+                    return blockchain.openContract(
+                        JettonDefaultWallet.fromAddress(await sampleJetton.getGetWalletAddress(user)),
+                    );
+                }),
+            );
+            const userAmount = toNano(50);
+            // require tokenTransfer amount = sum(user amount)
+            const amount = userAmount * 8n;
+
+            // build forward_payload
             const forward_payload: Slice = beginCell()
-                .storeUint(0xc351d681, 32)
-                .storeAddress(batchTransferSampleJettonWallet.address)
+                .storeUint(0xe5d5a095, 32) // opcode of `BatchTransferJetton`
+                .storeAddress(batchTransferSampleJettonWallet.address) // jetton wallet of batchTransfer contract
                 .storeRef(
                     beginCell()
-                        .storeAddress(user1.address)
-                        .storeUint(toNano(25), 120)
-                        .storeAddress(user2.address)
-                        .storeUint(toNano(25), 120)
+                        .storeAddress(users[0])
+                        .storeUint(userAmount, 120)
+                        .storeAddress(users[1])
+                        .storeUint(userAmount, 120)
                         .endCell(),
                 )
                 .storeRef(
                     beginCell()
-                        .storeAddress(randomAddress())
-                        .storeUint(toNano(25), 120)
-                        .storeAddress(randomAddress())
-                        .storeUint(toNano(25), 120)
+                        .storeAddress(users[2])
+                        .storeUint(userAmount, 120)
+                        .storeAddress(users[3])
+                        .storeUint(userAmount, 120)
+                        .endCell(),
+                )
+                .storeRef(
+                    beginCell()
+                        .storeAddress(users[4])
+                        .storeUint(userAmount, 120)
+                        .storeAddress(users[5])
+                        .storeUint(userAmount, 120)
+                        .endCell(),
+                )
+                .storeRef(
+                    beginCell()
+                        .storeAddress(users[6])
+                        .storeUint(userAmount, 120)
+                        .storeAddress(users[7])
+                        .storeUint(userAmount, 120)
                         .endCell(),
                 )
                 .endCell()
                 .asSlice();
 
+            const forward_ton_amount = toNano(0.05) * (8n + 1n);
+            const totalFee = forward_ton_amount + toNano(0.05);
+
             let result = await deployerSampleJettonWallet.send(
                 deployer.getSender(),
                 {
-                    value: toNano('0.35'),
+                    value: totalFee,
                 },
                 {
                     $$type: 'TokenTransfer',
                     queryId: 0n,
-                    amount: toNano(100),
+                    amount,
                     destination: batchTransfer.address,
                     response_destination: deployer.address,
                     custom_payload: null,
-                    forward_ton_amount: toNano('0.25'),
+                    forward_ton_amount,
                     forward_payload,
                 },
             );
@@ -282,22 +315,20 @@ describe('BatchTransfer', () => {
                 success: true,
                 value: toNano('0.05'),
             });
-            // TokenTransferInternal send to user1
-            expect(result.transactions).toHaveTransaction({
-                from: batchTransferSampleJettonWallet.address,
-                to: user1SampleJettonWallet.address,
-                success: true,
+
+            usersSampleJettonWallets.forEach(async (wallet) => {
+                expect(result.transactions).toHaveTransaction({
+                    from: batchTransferSampleJettonWallet.address,
+                    to: wallet.address,
+                    success: true,
+                });
+                expect((await wallet.getGetWalletData()).balance).toBe((userAmount * (10000n - 1000n)) / 10000n);
             });
-            // TokenTransferInternal send to user2
-            expect(result.transactions).toHaveTransaction({
-                from: batchTransferSampleJettonWallet.address,
-                to: user2SampleJettonWallet.address,
-                success: true,
-            });
+            // printTransactionFees(result.transactions)
             expect((await batchTransferSampleJettonWallet.getGetWalletData()).balance).toEqual(
-                toNano(10 * (index + 1)),
+                toNano(40 * (index + 1)),
             );
-            // console.log(index, fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
+            console.log(index, fromNano((await blockchain.provider(batchTransfer.address).getState()).balance));
         }
     });
 });

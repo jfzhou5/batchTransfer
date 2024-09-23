@@ -54,13 +54,12 @@ contract BatchTransfer with Deployable, Ownable {
     }
 
     receive(msg: TokenNotification){
-        // crc32 batchTransferJetton: 0xc351d681
-        // crc32 batchTransferTon: 0xc38a3a6f
         let ctx: Context = context();
         let payload: Slice = msg.forward_payload;
         let opcode: Int = payload.loadUint(32);
         let selfJettonWallet: Address = payload.loadAddress();
-        if (opcode == 0xc351d681) {
+        // crc32 BatchTransferJetton: 0xe5d5a095
+        if (opcode == 0xe5d5a095) {
             let addressAndAmount: map<Address, Int> = emptyMap();
             let sumAmount: Int = 0;
             let userCount: Int = 0;
