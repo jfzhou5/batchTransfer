@@ -29,6 +29,7 @@
     },
     "dependencies": {
         "@aws-crypto/sha256-js": "^5.2.0",
-        "@orbs-network/ton-access": "^2.3.3"
+        "@orbs-network/ton-access": "^2.3.3",
+        "axios": "^1.7.7"
     }
 }

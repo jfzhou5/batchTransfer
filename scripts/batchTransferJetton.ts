@@ -67,6 +67,8 @@ export async function run(provider: NetworkProvider) {
     const forward_ton_amount = toNano(0.05) * (8n + 1n);
     const totalFee = forward_ton_amount + toNano(0.05);
 
+    const now = BigInt(Math.floor(Date.now() / 1000));
+
     await userJettonWallet.send(
         provider.sender(),
         {
@@ -74,7 +76,7 @@ export async function run(provider: NetworkProvider) {
         },
         {
             $$type: 'TokenTransfer',
-            queryId: 0n,
+            queryId: now, // use queryId as tokenTransfer message id
             amount,
             destination: batchTransfer.address,
             response_destination: userAddress,

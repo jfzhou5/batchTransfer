@@ -17,19 +17,19 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
     const sampleJetton = provider.open(SampleJetton.fromAddress(address));
 
-    // await sampleJetton.send(
-    //     provider.sender(),
-    //     {
-    //         value: toNano('0.05'),
-    //     },
-    //     {
-    //         $$type: 'Mint',
-    //         receiver: userAddress,
-    //         amount: toNano('10000'),
-    //     },
-    // );
-    // await waitForTx(provider, userAddress);
-    // console.log(`Minted 10000 token to ${userAddress.toString()}`);
+    await sampleJetton.send(
+        provider.sender(),
+        {
+            value: toNano('0.05'),
+        },
+        {
+            $$type: 'Mint',
+            receiver: userAddress,
+            amount: toNano('50000'),
+        },
+    );
+    await waitForTx(provider, userAddress);
+    console.log(`Minted 50000 token to ${userAddress.toString()}`);
 
     const userJettonWallet = provider.open(
         JettonDefaultWallet.fromAddress(await sampleJetton.getGetWalletAddress(userAddress)),

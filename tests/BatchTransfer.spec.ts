@@ -146,7 +146,7 @@ describe('BatchTransfer', () => {
             },
             {
                 $$type: 'TokenTransfer',
-                queryId: 0n,
+                queryId: 0n, // use queryId as tokenTransfer message id
                 amount: toNano(100),
                 destination: batchTransfer.address,
                 response_destination: deployer.address,

@@ -105,3 +105,7 @@ export const senderArgsToMessageRelaxed = (args: SenderArguments): MessageRelaxe
         bounce: args.bounce,
     });
 };
+
+export const cellParse = (src: string): Cell => {
+    return Cell.fromBase64(Buffer.from(src, 'hex').toString('base64'));
+};
