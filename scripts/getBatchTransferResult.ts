@@ -1,6 +1,6 @@
 import { Address, address, beginCell, Cell, Slice, toNano } from '@ton/core';
 import { BatchTransfer, loadTokenTransfer } from '../wrappers/BatchTransfer';
-import { NetworkProvider } from '@ton/blueprint';
+import { NetworkProvider, sleep } from '@ton/blueprint';
 import { TESTNET_ADDRESS, TOKEN_TRANSFER_OP_CODE } from '../helpers/constant';
 import { SampleJetton } from '../wrappers/SampleJetton';
 import { JettonDefaultWallet } from '../build/SampleJetton/tact_JettonDefaultWallet';
@@ -54,8 +54,8 @@ export async function run(provider: NetworkProvider) {
 
     // decode TokenTransfer forward_payload to get users and amounts
     const tokenTransferMsg = loadTokenTransfer(cellParse(tokenTransferTx.in_msg.raw_body).asSlice());
-    console.log(tokenTransferMsg.queryId)
-    
+    console.log(tokenTransferMsg.queryId);
+
     const forward_payload = tokenTransferMsg.forward_payload;
     // console.log(forward_payload.loadUint(32).toString(16))
     const users = [];
@@ -70,8 +70,11 @@ export async function run(provider: NetworkProvider) {
             amounts.push((subPayload.loadUintBig(120) * 9000n) / 10000n);
         }
     }
-
-    const usersJettonWallets = await Promise.all(users.map(async (user) => await sam.getGetWalletAddress(user)));
+    const usersJettonWallets: Address[] = [];
+    for (const user of users) {
+        usersJettonWallets.push(await sam.getGetWalletAddress(user));
+        await sleep(1000);
+    }
     // console.log(users.map((v) => v.toRawString()));
     // console.log(usersJettonWallets.map((v) => v.toRawString()));
     // console.log(amounts);

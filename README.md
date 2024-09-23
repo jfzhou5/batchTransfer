@@ -36,6 +36,9 @@ yarn run:testnet batchTransferJetton
 # get batchTransfer result
 yarn run:testnet getBatchTransferResult
 
+# get batchTransfer contract jetton balance
+yarn run:testnet getBatchTransferJettonBalance
+
 # Owner: withdraw jetton
 yarn run:testnet withdrawJetton
 ```
